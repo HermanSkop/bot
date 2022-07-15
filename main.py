@@ -8,7 +8,7 @@ from _sqlite3 import Error
 from aiogram import types
 from telebot import types
 
-bot = telebot.TeleBot('5481730776:AAEbgqsNiMDxaWwfdrVWgJmBpHXz6FfXtwY')
+bot = telebot.TeleBot('')
 
 last_library_message = None
 
