@@ -15,26 +15,18 @@ last_library_message = None
 page = 0
 content = 5
 
-pattern = re.compile(r'\w', re.MULTILINE)
-
 
 @bot.inline_handler(func=lambda query: len(query.query) > 0)
 def show_list(query):
-    try:
-        matches = re.match(pattern, query.query)
-        # Вылавливаем ошибку, если вдруг юзер ввёл чушь
-        # или задумался после ввода первого числа
-    except AttributeError as ex:
-        return
     results = []
     id = 0
     for name in definitions:
-        if name[0] == query.query:
+        if query.query.lower() in name[0].lower():
             results.append(
                 types.InlineQueryResultArticle(
                     id=str(id), title=name[0],
                     description=name[1],
-                    input_message_content=types.InputTextMessageContent(message_text="works"))
+                    input_message_content=types.InputTextMessageContent(message_text=get_definition_in_form(name[0])))
             )
             id += 1
     bot.answer_inline_query(query.id, results, cache_time=1)
@@ -65,10 +57,13 @@ def get_description(name):
     return 'No description yet('
 
 
+def get_definition_in_form(name):
+    return '🔸 ' + name + '\n\n📖 ' + get_description(name) + '\n\n🌐 Development Corporation ™'
+
+
 @bot.callback_query_handler(func=lambda call: check_name(call.data))
 def show_definition(call):
-    message = '🔸 ' + call.data + '\n\n📖 ' + get_description(call.data) + '\n\n🌐 Development Corporation ™'
-    bot.send_message(call.message.chat.id, message)
+    bot.send_message(call.message.chat.id, get_definition_in_form(call.data))
     bot.answer_callback_query(call.id, text=call.data)
 
 
