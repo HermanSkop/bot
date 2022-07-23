@@ -1,57 +1,70 @@
 import math
 
 import telebot
-import globals
-from database import *
+from localStoragePy import localStoragePy
 from telebot import types
 
-from globals import on_library_page
+import globals
+from database import *
 from globals import content
 
-bot = telebot.TeleBot('')
+bot = telebot.TeleBot('5481730776:AAEbgqsNiMDxaWwfdrVWgJmBpHXz6FfXtwY')
+
+localStorage = localStoragePy('telegram_bot_DC', 'json')
+
+if localStorage.getItem('on_library_page') is None:
+    localStorage.setItem('on_library_page', 0)
 
 
 # rewrite if possible
 def refresh_page():
-    names_on_page = types.InlineKeyboardMarkup(row_width=1)
-    for i in range(globals.on_library_page * content, content * (globals.on_library_page + 1)):
-        name = definitions[i][0]
-        button = types.InlineKeyboardButton(name, callback_data=name)
-        names_on_page.add(button)
-    names_on_page.row_width = 3
-    if globals.on_library_page != 0 and not on_last_page():
-        prev_page = types.InlineKeyboardButton('⬅', callback_data='prev')
-        menu = types.InlineKeyboardButton('Menu', callback_data='menu')
-        next_page = types.InlineKeyboardButton('➡', callback_data='next')
-        names_on_page.add(prev_page, menu, next_page)
-    elif globals.on_library_page == 0:
-        menu = types.InlineKeyboardButton('Menu', callback_data='menu')
-        next_page = types.InlineKeyboardButton('➡', callback_data='next')
-        names_on_page.add(menu, next_page)
-    elif on_last_page():
-        menu = types.InlineKeyboardButton('Menu', callback_data='menu')
-        prev_page = types.InlineKeyboardButton('⬅', callback_data='prev')
-        names_on_page.add(prev_page, menu)
-    else:
-        menu = types.InlineKeyboardButton('Menu', callback_data='menu')
-        return menu
-    return names_on_page
+    try:
+        on_library_page = int(localStorage.getItem('on_library_page'))
+        names_on_page = types.InlineKeyboardMarkup(row_width=1)
+        for i in range(on_library_page * content, content * (on_library_page + 1)):
+            name = definitions[i][0]
+            button = types.InlineKeyboardButton(name, callback_data=name)
+            names_on_page.add(button)
+        names_on_page.row_width = 3
+        if on_library_page != 0 and not on_last_page():
+            prev_page = types.InlineKeyboardButton('⬅', callback_data='prev')
+            menu = types.InlineKeyboardButton('Menu', callback_data='menu')
+            next_page = types.InlineKeyboardButton('➡', callback_data='next')
+            names_on_page.add(prev_page, menu, next_page)
+        elif on_library_page == 0:
+            menu = types.InlineKeyboardButton('Menu', callback_data='menu')
+            next_page = types.InlineKeyboardButton('➡', callback_data='next')
+            names_on_page.add(menu, next_page)
+        elif on_last_page():
+            menu = types.InlineKeyboardButton('Menu', callback_data='menu')
+            prev_page = types.InlineKeyboardButton('⬅', callback_data='prev')
+            names_on_page.add(prev_page, menu)
+        else:
+            menu = types.InlineKeyboardButton('Menu', callback_data='menu')
+            return menu
+        return names_on_page
+    except Exception:
+        localStorage.setItem('on_library_page', 0)
+
 
 
 def to_next_page(message):
     globals.on_library_page += 1
+    localStorage.setItem('on_library_page', int(localStorage.getItem('on_library_page')) + 1)
     update_curr_page(message)
 
 
 def to_prev_page(message):
     globals.on_library_page -= 1
+    localStorage.setItem('on_library_page', int(localStorage.getItem('on_library_page')) - 1)
     update_curr_page(message)
 
 
 def on_last_page():
-    if globals.on_library_page == 0 and number_of_definitions <= content:
+    on_library_page = int(localStorage.getItem('on_library_page'))
+    if on_library_page == 0 and number_of_definitions <= content:
         return True
-    elif (math.ceil(number_of_definitions / content) - 1) == globals.on_library_page:
+    elif (math.ceil(number_of_definitions / content) - 1) == on_library_page:
         return True
     else:
         return False
@@ -62,7 +75,7 @@ def get_definition_in_form(name):
 
 
 # outputs the whole library
-def libsearch(message):
+def show_library(message):
     print_curr_page(message)
 
 
@@ -81,15 +94,19 @@ def return_to_menu(call):
 
 def delete_previous_library():
     try:
-        bot.delete_message(chat_id=globals.last_library_message.chat.id,
-                           message_id=globals.last_library_message.message_id)
+        bot.delete_message(chat_id=localStorage.getItem('last_library_chat_id'),
+                           message_id=localStorage.getItem('last_library_message_id'))
     except Exception:
         print('No such chat exists')
 
+
 def print_curr_page(message):
     delete_previous_library()
-    globals.last_library_message = bot.send_message(chat_id=message.chat.id, text='Библиотека',
-                                                    reply_markup=refresh_page())
+    last_library_message = bot.send_message(chat_id=message.chat.id, text='Библиотека',
+                                            reply_markup=refresh_page())
+    print(last_library_message)
+    localStorage.setItem('last_library_chat_id', last_library_message.chat.id)
+    localStorage.setItem('last_library_message_id', last_library_message.message_id)
 
 
 def update_curr_page(message):
@@ -204,7 +221,7 @@ def main_menu(message):
     elif message.text == "⚡ START ⚡":
         bot.send_message(message.chat.id, '/start', parse_mode='html')
     elif message.text == "🧑‍🎓 ОБУЧЕНИЕ 👩‍🎓":
-        libsearch(message)
+        show_library(message)
     elif message.text == "🔄 RESTART 🔄":
         start(message)
 
