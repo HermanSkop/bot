@@ -8,7 +8,7 @@ import globals
 from database import *
 from globals import content
 
-bot = telebot.TeleBot('5481730776:AAEbgqsNiMDxaWwfdrVWgJmBpHXz6FfXtwY')
+bot = telebot.TeleBot('')
 
 localStorage = localStoragePy('telegram_bot_DC', 'json')
 
