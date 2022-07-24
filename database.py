@@ -9,7 +9,7 @@ def default_query_run(insert_statement):
 def create_connection(path):
     connection = None
     try:
-        connection = sqlite3.connect(path)
+        connection = sqlite3.connect(path, check_same_thread=False)
         print("Connection to SQLite DB successful")
     except Error as e:
         print(f"The error '{e}' occurred")
@@ -22,7 +22,6 @@ def execute_query(connection, query):
     try:
         cursor.execute(query)
         connection.commit()
-        print("Query executed successfully")
     except Error as e:
         print(f"The error '{e}' occurred")
 
@@ -32,7 +31,17 @@ def execute_param_query(connection, query, params):
     try:
         cursor.execute(query, params)
         connection.commit()
-        print("Query executed successfully")
+    except Error as e:
+        print(f"The error '{e}' occurred")
+
+
+def execute_param_read_query(connection, query, params):
+    cursor = connection.cursor()
+    try:
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        connection.commit()
+        return result
     except Error as e:
         print(f"The error '{e}' occurred")
 
@@ -118,16 +127,55 @@ VALUES
 select_definitions = """SELECT name, description from definitions"""
 select_figures = """SELECT name, description from figures"""
 select_number_of_definitions = """SELECT COUNT(name) from definitions"""
-delete_comment = """DELETE FROM definitions WHERE id = 1"""
-insert_user_on_page = """INSERT OR IGNORE INTO users (id, on_page) VALUES (?, ?)"""
-insert_user_last_message_id = """INSERT OR IGNORE INTO users (id, on_page) VALUES (?, ?)"""
+select_last_library_id = """SELECT last_message_id from users WHERE id = ?"""
+select_user_on_page = """SELECT on_page from users WHERE id = ?"""
+
+delete_comment = """DELETE FROM users WHERE id = ?"""
+
+#execute_param_query(connection, delete_comment, (872759497, ))
+
+update_user = """INSERT OR REPLACE INTO users (id, on_page, last_message_id) VALUES (?, ?, ?)"""
 
 definitions = execute_read_query(connection, select_definitions)
 number_of_definitions = execute_read_query(connection, select_number_of_definitions)[0][0]
-print(number_of_definitions)
 
-data = (1, 12)
-execute_param_query(connection, insert_user_on_page, data)
+
+def update_library_page(user_id, page_number):
+    data = None
+    try:
+        data = (user_id, page_number, execute_param_read_query(connection, select_last_library_id, (user_id,))[0][0])
+    except IndexError:
+        data = (user_id, page_number, 0)
+    finally:
+        execute_param_query(connection, update_user, data)
+
+
+def update_last_library_id(user_id, message_id):
+    data = None
+    try:
+        data = (user_id, execute_param_read_query(connection, select_user_on_page, (user_id,))[0][0], message_id)
+    except IndexError:
+        data = (user_id, 0, message_id)
+    finally:
+        execute_param_query(connection, update_user, data)
+
+
+def get_library_page(user_id):
+    try:
+        data = (user_id,)
+        return execute_param_read_query(connection, select_user_on_page, data)[0][0]
+    except IndexError as e:
+        print(f'{e} in get_library_page')
+        return None
+
+
+def get_last_library_id(user_id):
+    try:
+        data = (user_id,)
+        return execute_param_read_query(connection, select_last_library_id, data)[0][0]
+    except IndexError as e:
+        print(f'{e} in get_library_page')
+        return None
 
 
 # returns description of the definition

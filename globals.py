@@ -1,5 +1,5 @@
-last_library_message = None
-last_figure_library_message = None
+import telebot
 
-on_library_page = 0
+bot = telebot.TeleBot('5481730776:AAEbgqsNiMDxaWwfdrVWgJmBpHXz6FfXtwY')
+
 content = 5
