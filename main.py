@@ -1,4 +1,6 @@
 from telebot import types
+
+import figures_library
 import globals
 import definitions_library
 from database import *
@@ -11,12 +13,17 @@ bot = globals.bot
 @bot.callback_query_handler(func=lambda call: check_menu(call.data))
 def return_to_menu(call):
     if call.data == 'menu':
-        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        # bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        # next line should be changed to something else
         start(call.message)
-    elif call.data == 'prev':
+    elif call.data == 'prev_def':
         definitions_library.to_prev_page(call.message)
-    elif call.data == 'next':
+    elif call.data == 'next_def':
         definitions_library.to_next_page(call.message)
+    elif call.data == 'prev_figure':
+        figures_library.to_prev_page(call.message)
+    elif call.data == 'next_figure':
+        figures_library.to_next_page(call.message)
     bot.answer_callback_query(call.id, text='menu')
 
 
@@ -53,7 +60,7 @@ def show_definition(call):
 
 # check_menu checks if the given text is menu or left/right button
 def check_menu(text):
-    if text == 'menu' or text == 'prev' or text == 'next':
+    if text == 'menu' or text == 'prev_def' or text == 'next_def' or text == 'prev_figure' or text == 'next_figure':
         return True
     else:
         return False
@@ -128,7 +135,9 @@ def main_menu(message):
     elif message.text == "⚡ START ⚡":
         bot.send_message(message.chat.id, '/start', parse_mode='html')
     elif message.text == "🧑‍🎓 ОБУЧЕНИЕ 👩‍🎓":
-        definitions_library.show_library(message)
+        definitions_library.show_definition_library(message)
+    elif message.text == "📕 ОБУЧЕНИЕ 📗":
+        definitions_library.show_definition_library(message)
     elif message.text == "🔄 RESTART 🔄":
         start(message)
 

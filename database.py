@@ -127,17 +127,20 @@ VALUES
 select_definitions = """SELECT name, description from definitions"""
 select_figures = """SELECT name, description from figures"""
 select_number_of_definitions = """SELECT COUNT(name) from definitions"""
+select_number_of_figures = """SELECT COUNT(name) from figures"""
 select_last_library_id = """SELECT last_message_id from users WHERE id = ?"""
 select_user_on_page = """SELECT on_page from users WHERE id = ?"""
 
 delete_comment = """DELETE FROM users WHERE id = ?"""
 
-#execute_param_query(connection, delete_comment, (872759497, ))
+# execute_param_query(connection, delete_comment, (872759497, ))
 
 update_user = """INSERT OR REPLACE INTO users (id, on_page, last_message_id) VALUES (?, ?, ?)"""
 
 definitions = execute_read_query(connection, select_definitions)
+figures = execute_read_query(connection, select_figures)
 number_of_definitions = execute_read_query(connection, select_number_of_definitions)[0][0]
+number_of_figures = execute_read_query(connection, select_number_of_figures)[0][0]
 
 
 def update_library_page(user_id, page_number):
