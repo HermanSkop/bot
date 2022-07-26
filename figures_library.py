@@ -63,11 +63,7 @@ def on_last_page(chat_id):
 
 
 def get_definition_in_form(name):
-    return '🔸 ' + name + '\n\n📖 ' + database.get_description(name) + '\n\n🌐 Development Corporation ®'
-
-
-def get_figure_in_form(name):
-    return '🔸 ' + name + '\n\n📖 ' + database.get_description(name) + '\n\n🌐 Development Corporation ®'
+    return '🔸 ' + name + '\n\n📖 ' + database.get_figure_description(name) + '\n\n🌐 Development Corporation ®'
 
 
 # outputs the page of definitions library
@@ -91,5 +87,5 @@ def print_curr_page(message):
 
 
 def update_curr_page(message):
-    globals.bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=globals.figures_library_title,
-                                  reply_markup=refresh_page(message))
+    globals.bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id,
+                                  text=globals.figures_library_title, reply_markup=refresh_page(message))

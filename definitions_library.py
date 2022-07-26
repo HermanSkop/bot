@@ -63,7 +63,7 @@ def on_last_page(chat_id):
 
 
 def get_definition_in_form(name):
-    return '🔸 ' + name + '\n\n📖 ' + database.get_description(name) + '\n\n🌐 Development Corporation ®'
+    return '🔸 ' + name + '\n\n📖 ' + database.get_definition_description(name) + '\n\n🌐 Development Corporation ®'
 
 
 # outputs the page of definitions library

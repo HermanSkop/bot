@@ -1,10 +1,11 @@
+import pathlib
+
 from telebot import types
 
 import figures_library
 import globals
 import definitions_library
 from database import *
-
 
 bot = globals.bot
 
@@ -41,20 +42,48 @@ def show_list(query):
                         message_text=definitions_library.get_definition_in_form(name[0])))
             )
             id += 1
+    for name in figures:
+        print(name[0])
+        print(get_image_of_figure(name[0]))
+        if query.query.lower() in name[0].lower():
+            results.append(
+                types.InlineQueryResultArticle(id=str(id), title=name[0], description=name[1],
+                                               input_message_content=types.InputTextMessageContent(
+                                                   message_text=figures_library.get_definition_in_form(name[0])))
+            )
+            id += 1
     bot.answer_inline_query(query.id, results, cache_time=1)
 
 
-# check_name checks if the given name in names of definitions`
-def check_name(name):
+# check_name checks if the given name in names of definitions
+def check_definition(name):
     for definition in definitions:
         if definition[0] == name:
             return True
     return False
 
 
-@bot.callback_query_handler(func=lambda call: check_name(call.data))
+@bot.callback_query_handler(func=lambda call: check_definition(call.data))
 def show_definition(call):
     bot.send_message(call.message.chat.id, definitions_library.get_definition_in_form(call.data))
+    bot.answer_callback_query(call.id, text=call.data)
+
+
+# check_name checks if the given name in names of figures
+def check_figure(name):
+    for figure in figures:
+        if figure[0] == name:
+            return True
+    return False
+
+
+@bot.callback_query_handler(func=lambda call: check_figure(call.data))
+def show_figure_definition(call):
+    try:
+        bot.send_photo(chat_id=call.message.chat.id, photo=open(get_image_of_figure(call.data), 'rb'),
+                       caption=figures_library.get_definition_in_form(call.data))
+    except FileNotFoundError:
+        bot.send_message(chat_id=call.message.chat.id, text=figures_library.get_definition_in_form(call.data))
     bot.answer_callback_query(call.id, text=call.data)
 
 
@@ -137,7 +166,7 @@ def main_menu(message):
     elif message.text == "🧑‍🎓 ОБУЧЕНИЕ 👩‍🎓":
         definitions_library.show_definition_library(message)
     elif message.text == "📕 ОБУЧЕНИЕ 📗":
-        definitions_library.show_definition_library(message)
+        figures_library.show_definition_library(message)
     elif message.text == "🔄 RESTART 🔄":
         start(message)
 
